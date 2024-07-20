@@ -1,0 +1,62 @@
+<link href="/css/styles.css" rel="stylesheet" type="text/css" />
+<title>Product catalog API docs</title>
+<body>
+  <p>
+    This API interacts establishes connection with a <%= process.env.MYSQL_DATABASE %> SQL database
+    on the <%= process.env.MYSQL_HOST %>, with user <%= process.env.MYSQL_USER %>
+  </p>
+
+  <h3>List of API to interact with Product catalog DB</h3>
+  <table>
+    <tr>
+      <th>Endpoint</th>
+      <th>Query params</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>/createdb</td>
+      <td>name</td>
+      <td>Create DB with the Given name</td>
+    </tr>
+    <tr>
+      <td>/createTable</td>
+      <td></td>
+      <td>
+        Creates 'products' Table in the 'catalogDB' with columns id, name,
+        description and cost
+      </td>
+    </tr>
+    <tr>
+      <td>/add</td>
+      <td>
+        name(text, required), description(text, optional), cost(number,
+        required)
+      </td>
+      <td>
+        Create entry in 'products' table with given name, description and cost
+      </td>
+    </tr>
+    <tr>
+      <td>/get</td>
+      <td>id(optional)</td>
+      <td>Fetches id-specific/all records from 'products' table</td>
+    </tr>
+
+    <tr>
+      <td>/update</td>
+      <td>
+        id(required), name(text, optional), description(text, optional),
+        cost(number, optional)
+      </td>
+      <td>
+        updates the specified values (of atleast one of the columns id, name,
+        description and cost) in the record with given id Table
+      </td>
+    </tr>
+    <tr>
+      <td>/delete</td>
+      <td>id(required)</td>
+      <td>Deletes the record with given id</td>
+    </tr>
+  </table>
+</body>

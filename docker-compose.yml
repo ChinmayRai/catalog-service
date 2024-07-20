@@ -1,0 +1,79 @@
+# Here's where we define our services:
+services:
+  # The master server, the OG in this world
+  app: 
+    build: .
+    ports:
+      - 3000:3000
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+      mysql-slave:
+        condition: service_healthy
+    environment:
+      MYSQL_SOURCE_SERVER: mysql-master
+      MYSQL_REPLICA_SERVER: mysql-slave
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: catalogdb
+      MYSQL_USER: replication_user
+      MYSQL_PASSWORD: 98765
+    networks:
+      - app-network
+  
+
+  mysql-master:
+    # We'll use the latest MySQL image from Docker Hub
+    image: mysql:lts
+    # Give it a cool name (mysql-master is pretty clear, right?)
+    container_name: mysql-master
+    # Extra commands to configure the master for replication
+    command: --server-id=1 --log-bin=mysql-bin --binlog-format=row --mysql-native-password=ON
+    # Set some environment variables for passwords and database details
+    # Remember to replace these with your own strong passwords!
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: catalogdb # Feel free to change this database name
+      MYSQL_USER: replication_user # This user will handle replication
+      MYSQL_PASSWORD: 98765
+    # Map the container port (3306) to your host machine's port (also 3306)
+    # This lets you access the master server from your machineq
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "$MYSQL_USER", "--password=$MYSQL_PASSWORD"]
+      retries: 10
+      interval: 3s
+      timeout: 30s
+
+  # The replica server, the master's trusty sidekick
+  mysql-slave:
+    # Same image as the master
+    image: mysql:lts
+    # Another cool name (can you guess what it is?)
+    container_name: mysql-slave
+    # This tells the replica to wait for the master to be ready before starting
+    depends_on:
+      - mysql-master
+    # Similar commands and environment variables as the master
+    command: --server-id=2 --log-bin=mysql-bin --binlog-format=row --mysql-native-password=ON
+    environment:
+      MYSQL_ROOT_PASSWORD: root # Same password for both
+      MYSQL_DATABASE: catalogdb
+      MYSQL_USER: replication_user
+      MYSQL_PASSWORD: 98765
+    # Map the container port (3306) to a different host machine port (3307 in this case)
+    ports:
+      - "3307:3306"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "$MYSQL_USER", "--password=$MYSQL_PASSWORD"]
+      retries: 10
+      interval: 3s
+      timeout: 30s
+
+networks:
+  app-network:
+    name: app-network
